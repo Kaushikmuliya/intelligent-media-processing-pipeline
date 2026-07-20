@@ -5,3 +5,4 @@ src/storage/uploads/*
 logs
 coverage
 dist
+eng.traineddata
