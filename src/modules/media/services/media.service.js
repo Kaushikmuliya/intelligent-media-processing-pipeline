@@ -34,7 +34,7 @@ class MediaService {
 
     const media = await mediaRepository.create(mediaData);
 
-    await mediaQueue.add("process-image", {
+    const job = await mediaQueue.add("process-image", {
       processingId: media.processingId,
     });
 

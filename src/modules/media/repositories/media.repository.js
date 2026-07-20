@@ -11,8 +11,7 @@ class MediaRepository {
 
   async updateByProcessingId(processingId, updateData) {
     return await Media.findOneAndUpdate({ processingId }, updateData, {
-      new: true,
-      runValidators: true,
+      returnDocument: "after",
     });
   }
 }

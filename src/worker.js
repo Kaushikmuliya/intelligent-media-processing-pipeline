@@ -1,28 +1,54 @@
 const { Worker } = require("bullmq");
 
+const connectDatabase = require("./config/database");
 const redis = require("./config/redis");
-
 const logger = require("./shared/logger/logger");
 
-const worker = new Worker(
-  "media-processing",
-  async (job) => {
-    logger.info(`Processing ${job.data.processingId}`);
+const runPipeline = require("./analyzers/pipeline");
 
-    // Temporary delay
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+const mediaRepository = require("./modules/media/repositories/media.repository");
+const { MEDIA_STATUS } = require("./shared/constants/status");
 
-    logger.info(`Finished ${job.data.processingId}`);
-  },
-  {
-    connection: redis,
-  }
-);
+const startWorker = async () => {
+  await connectDatabase();
 
-worker.on("completed", (job) => {
-  logger.info(`Job ${job.id} completed`);
-});
+  const worker = new Worker(
+    "media-processing",
+    async (job) => {
+      const { processingId } = job.data;
 
-worker.on("failed", (job, err) => {
-  logger.error(err.message);
+      logger.info(`Processing ${processingId}`);
+
+      const media = await mediaRepository.findByProcessingId(processingId);
+
+      if (!media) {
+        throw new Error("Media not found");
+      }
+
+      const analysis = await runPipeline(media.file.path);
+
+      await mediaRepository.updateByProcessingId(processingId, {
+        status: MEDIA_STATUS.COMPLETED,
+        analysis,
+      });
+
+      logger.info(`Finished ${processingId}`);
+    },
+    {
+      connection: redis,
+    }
+  );
+
+  worker.on("completed", (job) => {
+    logger.info(`Job ${job.id} completed`);
+  });
+
+  worker.on("failed", (job, err) => {
+    logger.error(err.message);
+  });
+};
+
+startWorker().catch((error) => {
+  logger.error(error.message);
+  process.exit(1);
 });
