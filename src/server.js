@@ -4,6 +4,7 @@ const env = require("./config/env");
 const logger = require("./shared/logger/logger");
 
 const connectDatabase = require("./config/database");
+const redis = require("./config/redis");
 
 (async () => {
   await connectDatabase();

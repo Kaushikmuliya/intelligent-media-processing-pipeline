@@ -6,6 +6,8 @@ const morgan = require("morgan");
 
 const errorHandler = require("./shared/errors/errorHandler");
 
+const mediaRoutes = require("./modules/media/routes/media.routes");
+
 const app = express();
 
 app.use(helmet());
@@ -23,6 +25,8 @@ app.get("/health", (req, res) => {
     message: "Server is healthy",
   });
 });
+
+app.use("/api/v1/media", mediaRoutes);
 
 app.use(errorHandler);
 
