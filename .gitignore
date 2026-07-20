@@ -1,7 +1,7 @@
 node_modules
 .env
-uploads/*
-!uploads/.gitkeep
+src/storage/uploads/*
+!src/storage/uploads/.gitkeep
 logs
 coverage
 dist

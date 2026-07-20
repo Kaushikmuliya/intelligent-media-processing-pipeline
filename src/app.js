@@ -1,0 +1,32 @@
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
+
+const errorHandler = require("./shared/errors/errorHandler");
+
+const app = express();
+
+app.use(helmet());
+
+app.use(cors());
+
+app.use(compression());
+
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(morgan("dev"));
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
+  });
+});
+
+app.use(errorHandler);
+
+module.exports = app;
