@@ -3,6 +3,8 @@ const { nanoid } = require("nanoid");
 const mediaRepository = require("../repositories/media.repository");
 const { MEDIA_STATUS } = require("../../../shared/constants/status");
 
+const mediaQueue = require("../queues/media.queue");
+
 class MediaService {
   async uploadMedia(file) {
     const processingId = `media_${nanoid(10)}`;
@@ -31,6 +33,10 @@ class MediaService {
     };
 
     const media = await mediaRepository.create(mediaData);
+
+    await mediaQueue.add("process-image", {
+      processingId: media.processingId,
+    });
 
     return {
       processingId: media.processingId,
