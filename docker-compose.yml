@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  media-service:
+    build: .
+
+    container_name: intelligent-media-pipeline
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./src/storage/uploads:/app/src/storage/uploads
+
+    restart: unless-stopped

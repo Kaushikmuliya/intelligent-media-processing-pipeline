@@ -1,10 +1,17 @@
 const multer = require("multer");
 const path = require("path");
 const { randomUUID } = require("crypto");
+const fs = require("fs");
+const AppError = require("../errors/AppError");
+
+const uploadPath = path.join(__dirname, "../../storage/uploads");
+
+// Create the uploads directory if it doesn't exist
+fs.mkdirSync(uploadPath, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "src/storage/uploads");
+    cb(null, uploadPath);
   },
 
   filename: (req, file, cb) => {
@@ -18,7 +25,7 @@ const fileFilter = (req, file, cb) => {
     return cb(null, true);
   }
 
-  cb(new Error("Only image files are allowed"), false);
+  cb(new AppError("Only image files are allowed", 400), false);
 };
 
 const upload = multer({
