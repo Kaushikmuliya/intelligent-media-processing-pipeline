@@ -1,18 +1,15 @@
 const analyzeMetadata = require("./metadataAnalyzer");
-// const analyzeBlur = require("./blurAnalyzer");
-// const analyzeBrightness = require("./brightnessAnalyzer");
-// const analyzeOCR = require("./ocrAnalyzer");
-// const analyzePlate = require("./plateAnalyzer");
+const analyzeBlur = require("./blurAnalyzer");
 
 const runPipeline = async (imagePath) => {
-  const metadata = await analyzeMetadata(imagePath);
+  const [metadata, blur] = await Promise.all([
+    analyzeMetadata(imagePath),
+    analyzeBlur(imagePath),
+  ]);
 
   return {
     metadata,
-    // blur,
-    // brightness,
-    // ocr,
-    // plateValidation,
+    blur,
   };
 };
 
