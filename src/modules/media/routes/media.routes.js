@@ -7,4 +7,6 @@ const router = express.Router();
 
 router.post("/upload", upload.single("image"), mediaController.uploadMedia);
 
+router.get("/:processingId", mediaController.getProcessingStatus);
+
 module.exports = router;
