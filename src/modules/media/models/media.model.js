@@ -21,12 +21,12 @@ const mediaSchema = new mongoose.Schema(
         required: true,
       },
 
-      storedName: {
+      cloudinaryPublicId: {
         type: String,
         required: true,
       },
 
-      path: {
+      url: {
         type: String,
         required: true,
       },
@@ -92,7 +92,7 @@ const mediaSchema = new mongoose.Schema(
   },
   {
     versionKey: false,
-  }
+  },
 );
 
 module.exports = mongoose.model("Media", mediaSchema);

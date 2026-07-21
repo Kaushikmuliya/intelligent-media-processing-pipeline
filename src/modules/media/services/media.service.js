@@ -4,10 +4,13 @@ const mediaRepository = require("../repositories/media.repository");
 const { MEDIA_STATUS } = require("../../../shared/constants/status");
 const mediaQueue = require("../queues/media.queue");
 const AppError = require("../../../shared/errors/AppError");
+const { uploadImage } = require("../../../shared/utils/cloudinary");
 
 class MediaService {
   async uploadMedia(file) {
     const processingId = `media_${nanoid(10)}`;
+
+    const uploadResult = await uploadImage(file.path);
 
     const mediaData = {
       processingId,
@@ -15,8 +18,8 @@ class MediaService {
 
       file: {
         originalName: file.originalname,
-        storedName: file.filename,
-        path: file.path,
+        cloudinaryPublicId: uploadResult.public_id,
+        url: uploadResult.secure_url,
         mimeType: file.mimetype,
         size: file.size,
         hash: null,
