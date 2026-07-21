@@ -8,6 +8,9 @@ const errorHandler = require("./shared/errors/errorHandler");
 
 const mediaRoutes = require("./modules/media/routes/media.routes");
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
+
 const app = express();
 
 app.use(helmet());
@@ -25,6 +28,14 @@ app.get("/health", (req, res) => {
     message: "Server is healthy",
   });
 });
+
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+  }),
+);
 
 app.use("/api/v1/media", mediaRoutes);
 
