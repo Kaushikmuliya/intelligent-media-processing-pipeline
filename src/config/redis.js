@@ -8,6 +8,9 @@ const redis = new IORedis({
   port: env.REDIS_PORT,
   username: env.REDIS_USERNAME,
   password: env.REDIS_PASSWORD,
+
+  tls: {},
+
   maxRetriesPerRequest: null,
 });
 
@@ -15,8 +18,12 @@ redis.on("connect", () => {
   logger.info("Redis connected");
 });
 
+redis.on("ready", () => {
+  logger.info("Redis ready");
+});
+
 redis.on("error", (error) => {
-  logger.error(error.message);
+  logger.error(error);
 });
 
 module.exports = redis;
