@@ -22,7 +22,7 @@ class MediaController {
     }
   }
 
-  async getProcessingStatus(req, res, next) {
+  async getProcessingResult(req, res, next) {
     try {
       const { processingId } = req.params;
 

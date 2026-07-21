@@ -6,3 +6,6 @@ logs
 coverage
 dist
 eng.traineddata
+
+frontend/node_modules
+frontend/.next
