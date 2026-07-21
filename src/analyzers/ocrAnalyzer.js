@@ -3,11 +3,13 @@ const Tesseract = require("tesseract.js");
 const analyzeOCR = async (imagePath) => {
   const {
     data: { text, confidence },
-  } = await Tesseract.recognize(imagePath, "eng");
+  } = await Tesseract.recognize(imagePath, "eng", {
+    logger: () => {}, // Suppress Tesseract progress logs
+  });
 
   return {
     text: text.trim(),
-    confidence: Number(confidence.toFixed(2)),
+    confidence: Number((confidence || 0).toFixed(2)),
   };
 };
 
