@@ -1,22 +1,25 @@
+const fs = require("fs");
+const fsPromises = require("fs/promises");
 const cloudinary = require("../../config/cloudinary");
 
-const uploadBuffer = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "intelligent-media-processing",
-        resource_type: "image",
-      },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      },
-    );
+const uploadImage = async (filePath) => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath);
 
-    stream.end(buffer);
-  });
+    await fsPromises.unlink(filePath);
+
+    return result;
+  } catch (error) {
+    try {
+      if (fs.existsSync(filePath)) {
+        await fsPromises.unlink(filePath);
+      }
+    } catch (_) {}
+
+    throw error;
+  }
 };
 
 module.exports = {
-  uploadBuffer,
+  uploadImage,
 };
