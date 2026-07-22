@@ -175,48 +175,100 @@ All five modules run on the image downloaded by the worker to the OS temp direct
 
 ### 1. Metadata Extraction (`metadataAnalyzer.js`)
 
-Uses **Sharp** to read image headers without decoding pixel data.
+Uses Sharp's `metadata()` to read image headers without decoding pixel data — fast regardless of file size.
 
-Returns: `format`, `width`, `height`, `channels`, `density`, `hasAlpha`, `colorSpace`, `orientation`
+Returns:
+
+| Field | Description |
+|---|---|
+| `format` | Image format (`jpeg`, `png`, `webp`, `gif`, etc.) |
+| `width` / `height` | Pixel dimensions |
+| `aspectRatio` | `width/height` rounded to 2 decimal places |
+| `channels` | Raw channel count (1/2/3/4) |
+| `channelInterpretation` | Human-readable label (`greyscale`, `rgb`, `rgba`, etc.) |
+| `colorSpace` | Colour space (`srgb`, `cmyk`, `b-w`, etc.) |
+| `hasAlpha` | Whether the image has transparency |
+| `density` | DPI if present, `null` otherwise |
+| `orientation` | EXIF orientation tag (1–8), `null` if absent |
+| `isProgressive` | `true` for progressive JPEG/PNG encoding |
+| `pages` | Frame count — `>1` for animated GIF/WebP |
+| `exif` | `{ present: true, byteLength }` if EXIF data exists, `null` otherwise |
 
 ### 2. Blur Detection (`blurAnalyzer.js`)
 
-Converts the image to greyscale, reads raw pixel values, and computes the mean absolute difference between adjacent pixels. This is a lightweight proxy for Laplacian variance — high pixel-to-pixel variation indicates sharpness; low variation indicates blur.
+Converts the image to greyscale and computes the **variance of the Laplacian**. The Laplacian is a second-order derivative operator — it responds strongly to edges and fine detail. Sharp images contain a lot of high-frequency information and produce high Laplacian variance; blurry images suppress those frequencies and produce low variance.
 
-- Score < 20 → `isBlurry: true`
-- Score ≥ 20 → `isBlurry: false`
+The 3×3 discrete Laplacian kernel used:
+
+```
+[ 0  1  0 ]
+[ 1 -4  1 ]
+[ 0  1  0 ]
+```
+
+- Score < 100 → `isBlurry: true`
+- Score ≥ 100 → `isBlurry: false`
 
 Returns: `{ score, isBlurry }`
 
 ### 3. Brightness Analysis (`brightnessAnalyzer.js`)
 
-Converts the image to greyscale and computes the mean pixel value across all pixels (0–255 scale).
+Uses Sharp's native `stats()` method to compute channel statistics in C++ rather than iterating over a raw pixel buffer in JS. The image is converted to greyscale using the perceptual luminance formula (ITU-R BT.709: `0.2126R + 0.7152G + 0.0722B`) rather than a simple RGB average, so colour bias in the image doesn't skew the reading.
 
-- < 70 → `too_dark`
-- 70–200 → `good`
-- > 200 → `too_bright`
+Standard deviation is returned alongside the mean — it helps distinguish a genuinely dark image from a high-contrast image that just has large dark regions.
 
-Returns: `{ average, quality }`
+- mean < 50 → `too_dark`
+- mean 50–210 → `good`
+- mean > 210 → `too_bright`
+
+Returns: `{ average, stdDev, quality }`
 
 ### 4. OCR Extraction (`ocrAnalyzer.js`)
 
-Uses **Tesseract.js** with the English language model to extract all visible text from the image. Progress logging is suppressed to keep worker output clean.
+Uses **Tesseract.js** (LSTM engine) with a Sharp preprocessing pipeline applied before recognition. Preprocessing steps:
 
-Returns: `{ text, confidence }`
+1. **Upscale** — images narrower than 1000px are upscaled; Tesseract needs sufficient pixel density to resolve characters
+2. **Greyscale** — colour is irrelevant for text extraction
+3. **Sharpen** — mild unsharp mask to crisp up character edges blurred by compression or camera shake
+4. **Normalise** — stretches the histogram so the darkest pixel → 0, brightest → 255, maximising contrast
+5. **Threshold** — binarises to pure black/white; Tesseract is trained on binary images and performs significantly better on them
+
+Tesseract is configured with PSM 6 ("single uniform block of text") instead of the default full-page auto mode, and OEM 1 (LSTM-only, most accurate engine).
+
+Returns:
+
+| Field | Description |
+|---|---|
+| `text` | Cleaned extracted text (whitespace normalised) |
+| `rawText` | Original Tesseract output for debugging |
+| `confidence` | Document-level mean confidence (0–100) |
+| `hasText` | `true` if any non-whitespace characters were extracted |
+| `wordCount` | Number of words Tesseract identified |
+| `words` | Array of `{ text, confidence }` per word, sorted by confidence desc |
 
 ### 5. Indian Vehicle Plate Validation (`plateAnalyzer.js`)
 
-Strips all non-alphanumeric characters from the OCR text, then applies a regex matching the standard Indian registration number format:
+Rather than stripping all text into one concatenated blob and running a single regex, the analyzer uses a multi-stage strategy:
 
-```
-<STATE_CODE><1-2 digits><1-3 letters><4 digits>
-```
+1. **Tokenise** — splits OCR text into individual words, then generates sliding windows of 2 and 3 adjacent tokens. Handles cases where Tesseract inserts spaces inside plate characters (e.g. `MH 12 AB 1234` → tries `MH12AB1234` as a candidate)
+2. **OCR confusion correction** — applies a character substitution map per structural position before matching. Tesseract commonly confuses `O↔0`, `I↔1`, `L↔1`, `S↔5`, `B↔8`, `G↔6`. Since plate structure is well-defined (positions 0–1 must be alpha, 2–3 must be digits, etc.), corrections are applied position-aware rather than blindly
+3. **Three match tiers:**
+   - **Strict** — exact standard format `STATE(2) + DIST(2) + SERIES(1-3) + NUM(4)`, e.g. `MH12AB1234`
+   - **BH series** — Bharat series format `YY + BH + 4 digits + 2 alpha`, e.g. `22BH1234AA`
+   - **Lenient** — relaxed regex for partial OCR reads; returns a result but flags confidence as `medium`
+4. **Score and rank** — all candidates are scored (strict match > BH > lenient, bonus for correct length and known state code prefix); the highest-scoring result wins
 
-Example valid plates: `MH12AB1234`, `KA19MC0001`, `DL01AA9999`
+Supported state/UT codes: all 37 (AN, AP, AR, AS, BR, CG, CH, DD, DL, DN, GA, GJ, HP, HR, JH, JK, KA, KL, LA, LD, MH, ML, MN, MP, MZ, NL, OD, PB, PY, RJ, SK, TN, TR, TS, UK, UP, WB)
 
-All 36 Indian state/UT codes are included in the regex.
+Returns:
 
-Returns: `{ detectedPlate, isValid }`
+| Field | Description |
+|---|---|
+| `detectedPlate` | Best matched plate string, or `null` |
+| `isValid` | `true` only for strict or BH format matches |
+| `matchType` | `"strict"`, `"bh"`, `"lenient"`, or `null` |
+| `confidence` | `"high"` (strict/BH), `"medium"` (lenient), or `"none"` |
+| `candidates` | All unique plate candidates found (deduplicated) |
 
 ---
 
