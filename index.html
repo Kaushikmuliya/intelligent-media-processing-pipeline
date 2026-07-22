@@ -10,6 +10,7 @@
         --card: #1e293b;
         --card-2: #243146;
         --accent: #3b82f6;
+        --accent-2: #22d3ee;
         --success: #22c55e;
         --warning: #f59e0b;
         --danger: #ef4444;
@@ -28,11 +29,9 @@
         padding: 0;
       }
       body {
-        background: radial-gradient(
-          1200px 600px at 10% -10%,
-          #16233f 0%,
-          var(--bg) 60%
-        );
+        background:
+          radial-gradient(1200px 600px at 10% -10%, #16233f 0%, var(--bg) 60%),
+          radial-gradient(900px 500px at 110% 10%, rgba(34, 211, 238, 0.08) 0%, transparent 55%);
         color: var(--text);
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
@@ -64,6 +63,13 @@
         align-items: center;
         gap: 14px;
         padding: 14px 20px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
       }
       .logo {
         width: 38px;
@@ -92,12 +98,68 @@
         font-size: 11.5px;
         color: var(--text-muted);
       }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--text);
+        background: rgba(148, 163, 184, 0.06);
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.15s ease;
+      }
+      .nav-link:hover {
+        background: rgba(148, 163, 184, 0.14);
+        border-color: rgba(148, 163, 184, 0.3);
+        transform: translateY(-1px);
+      }
+      .nav-link.primary {
+        background: linear-gradient(135deg, var(--accent), #2563eb);
+        border-color: transparent;
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+      }
+      .nav-link.primary:hover {
+        transform: translateY(-1px);
+      }
 
       /* ---------- HERO ---------- */
       .hero {
         text-align: center;
         padding: 64px 20px 40px;
         animation: fadeIn 0.8s ease both;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(34, 197, 94, 0.08);
+        color: #86efac;
+        font-size: 12.5px;
+        font-weight: 600;
+        margin-bottom: 18px;
+      }
+      .hero-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
       }
       .hero h1 {
         font-size: clamp(28px, 4vw, 44px);
@@ -114,6 +176,13 @@
         color: var(--text-muted);
         font-size: 15.5px;
       }
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
 
       /* ---------- CARD BASE ---------- */
       .card {
@@ -123,6 +192,7 @@
         box-shadow: var(--shadow);
         padding: 24px;
         animation: fadeIn 0.5s ease both;
+        transition: border-color 0.25s ease, transform 0.2s ease;
       }
       .section {
         margin: 28px 0;
@@ -134,6 +204,17 @@
         color: var(--text-muted);
         margin-bottom: 14px;
         font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-title::before {
+        content: "";
+        width: 3px;
+        height: 14px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        display: inline-block;
       }
 
       /* ---------- UPLOAD ---------- */
@@ -193,6 +274,10 @@
         background: linear-gradient(135deg, var(--accent), #2563eb);
         color: #fff;
         box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+      }
+      .btn-primary:hover:not(:disabled) {
+        box-shadow: 0 8px 22px rgba(59, 130, 246, 0.45);
+        transform: translateY(-1px);
       }
       .btn-primary:disabled {
         opacity: 0.4;
@@ -347,6 +432,9 @@
         gap: 18px;
         margin-top: 10px;
       }
+      .result-card:hover {
+        border-color: rgba(59, 130, 246, 0.35);
+      }
       .result-card h3 {
         margin: 0 0 14px;
         font-size: 15px;
@@ -482,6 +570,28 @@
         color: var(--text-muted);
         font-size: 13px;
       }
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+      .footer-links a {
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(148, 163, 184, 0.06);
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      .footer-links a:hover {
+        background: rgba(148, 163, 184, 0.14);
+        border-color: rgba(148, 163, 184, 0.3);
+      }
       .stack-pills {
         display: flex;
         flex-wrap: wrap;
@@ -511,6 +621,10 @@
         .dropzone {
           padding: 32px 14px;
         }
+        .nav-inner {
+          justify-content: center;
+          text-align: center;
+        }
       }
     </style>
   </head>
@@ -520,20 +634,57 @@
         class="nav-inner container"
         style="padding-left: 0; padding-right: 0"
       >
-        <div class="logo">IM</div>
-        <div class="brand-text">
-          <span class="name">Intelligent Media Processing Pipeline</span>
-          <span class="sub">Async image analysis service</span>
+        <div class="nav-left">
+          <div class="logo">IM</div>
+          <div class="brand-text">
+            <span class="name">Intelligent Media Processing Pipeline</span>
+            <span class="sub">Async image analysis service</span>
+          </div>
+        </div>
+        <div class="nav-links">
+          <a
+            class="nav-link"
+            href="https://intelligent-media-processing-api.onrender.com/api-docs/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            📄 API Docs
+          </a>
+          <a
+            class="nav-link primary"
+            href="https://intelligent-media-processing-api.onrender.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            🚀 Live Demo
+          </a>
         </div>
       </div>
     </header>
 
     <section class="hero container">
+      <div class="hero-badge"><span class="dot"></span> API live &amp; operational</div>
       <h1>Intelligent Media Processing Pipeline</h1>
       <p>
         Asynchronous cloud-native image analysis powered by Express, BullMQ,
         Redis and Cloudinary.
       </p>
+      <div class="hero-actions">
+        <a
+          class="nav-link primary"
+          href="https://intelligent-media-processing-api.onrender.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >View Live Deployment</a
+        >
+        <a
+          class="nav-link"
+          href="https://intelligent-media-processing-api.onrender.com/api-docs/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Read API Documentation</a
+        >
+      </div>
     </section>
 
     <main class="container">
@@ -622,6 +773,20 @@
     </main>
 
     <footer>
+      <div class="footer-links">
+        <a
+          href="https://intelligent-media-processing-api.onrender.com/api-docs/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >📄 API Documentation</a
+        >
+        <a
+          href="https://intelligent-media-processing-api.onrender.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >🚀 Live Project</a
+        >
+      </div>
       <div>Built with</div>
       <div class="stack-pills">
         <span>Node.js</span>
