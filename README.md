@@ -15,6 +15,7 @@ https://drive.google.com/file/d/1jC5_XbX3dePiPSdIvuPcoXOa2sTVY9gN/view?usp=drive
 ## Table of Contents
 
 - [Architecture](#architecture)
+- [Directory Structure](#directory-structure)
 - [Processing Flow](#processing-flow)
 - [Analysis Modules](#analysis-modules)
 - [Tech Stack](#tech-stack)
@@ -79,6 +80,64 @@ The API process and the Worker process are **intentionally separated**. The API 
 
 ---
 
+## Directory Structure
+
+```
+intelligent-media-processing-pipeline/
+├── demo/
+│   └── app.js                  # Frontend JS for the demo UI (served as static)
+├── src/
+│   ├── analyzers/
+│   │   ├── blurAnalyzer.js
+│   │   ├── brightnessAnalyzer.js
+│   │   ├── metadataAnalyzer.js
+│   │   ├── ocrAnalyzer.js
+│   │   ├── pipeline.js         # Orchestrates all analyzers
+│   │   └── plateAnalyzer.js
+│   ├── config/
+│   │   ├── cloudinary.js
+│   │   ├── database.js
+│   │   ├── env.js              # Centralised env var access
+│   │   ├── redis.js
+│   │   └── swagger.js
+│   ├── modules/
+│   │   └── media/
+│   │       ├── controllers/
+│   │       │   └── media.controller.js
+│   │       ├── models/
+│   │       │   └── media.model.js
+│   │       ├── queues/
+│   │       │   └── media.queue.js
+│   │       ├── repositories/
+│   │       │   └── media.repository.js
+│   │       ├── routes/
+│   │       │   └── media.routes.js
+│   │       └── services/
+│   │           └── media.service.js
+│   ├── shared/
+│   │   ├── constants/
+│   │   │   └── status.js       # MEDIA_STATUS enum
+│   │   ├── errors/
+│   │   │   ├── AppError.js
+│   │   │   └── errorHandler.js
+│   │   ├── logger/
+│   │   │   └── logger.js       # Winston logger
+│   │   └── middleware/
+│   │       └── upload.js       # Multer configuration
+│   ├── storage/
+│   │   └── uploads/            # Temporary upload directory (git-ignored)
+│   ├── app.js                  # Express app setup
+│   ├── server.js               # API process entry point
+│   └── worker.js               # BullMQ worker entry point
+├── index.html                  # Demo UI entry point (served at /)
+├── .env.example
+├── docker-compose.yml
+├── Dockerfile
+└── package.json
+```
+
+---
+
 ## Processing Flow
 
 1. Client uploads an image via `POST /api/v1/media/upload`
@@ -106,7 +165,7 @@ BullMQ over Redis was chosen because:
 - Simple Node.js integration with no additional broker infrastructure
 - Redis Cloud is free-tier available for development and staging
 
-Jobs are named `process-image` and carry only `{ processingId }` — the worker re-fetches the full record from MongoDB. This keeps the queue payload minimal and avoids stale data issues.
+Jobs carry only `{ processingId }` — the worker re-fetches the full record from MongoDB. This keeps the queue payload minimal and avoids stale data issues.
 
 ---
 
@@ -281,7 +340,7 @@ GET /api/v1/media/:processingId
       "reason": "connect ECONNREFUSED",
       "stack": "..."
     },
-    "timestamps": { ... }
+    "timestamps": { "..." : "..." }
   }
 }
 ```
@@ -379,7 +438,7 @@ npm install
 
 # 3. Configure environment
 cp .env.example .env
-# Fill in MONGODB_URI, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD,
+# Fill in MONGODB_URI, REDIS_HOST, REDIS_PORT, REDIS_USERNAME, REDIS_PASSWORD,
 # CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 
 # 4. Start the API server (port 5000)
@@ -391,17 +450,56 @@ npm run worker
 
 Both processes must be running simultaneously. The API enqueues jobs; the worker consumes them.
 
+### Available Scripts
+
+| Command | Description |
+| -------------- | -------------------------------------------- |
+| `npm run dev` | Start the API server with hot-reload (nodemon) |
+| `npm run worker` | Start the BullMQ worker process |
+| `npm start` | Start the API server (production, no reload) |
+| `npm run lint` | Run ESLint across the codebase |
+
+### Seed Scripts
+
+No seed scripts are included. The system is data-driven by uploads — submit an image via `POST /api/v1/media/upload` or use the demo UI at `/` to populate data.
+
+### Test Scripts
+
+No automated test suite is included yet. Testing the pipeline manually:
+
+1. Upload an image via the demo UI or with curl:
+   ```bash
+   curl -X POST http://localhost:5000/api/v1/media/upload \
+     -F "image=@/path/to/image.jpg"
+   ```
+2. Copy the returned `processingId` and poll for results:
+   ```bash
+   curl http://localhost:5000/api/v1/media/<processingId>
+   ```
+3. Check the health endpoint: `curl http://localhost:5000/health`
+
+Adding a proper test suite (Jest + Supertest for API routes, unit tests per analyzer) is listed under Future Improvements.
+
 ---
 
 ## Docker
 
-A Dockerfile and docker-compose.yml are included. The compose file runs the API service with the uploads directory mounted as a volume.
+A `Dockerfile` and `docker-compose.yml` are included. The compose file defines four services:
+
+| Service         | Description                                      |
+| --------------- | ------------------------------------------------ |
+| `media-service` | Express API server (port 5000)                   |
+| `media-worker`  | BullMQ worker process                            |
+| `mongo`         | MongoDB 7 with a persistent named volume         |
+| `redis`         | Redis 7 Alpine with a persistent named volume    |
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
-> Note: Redis and MongoDB are not included in the compose file — they are expected to be provided via `.env` (e.g., Redis Cloud, MongoDB Atlas). This keeps the setup lean and matches the deployed architecture.
+Both `media-service` and `media-worker` depend on `mongo` and `redis`, so all four services start in the correct order. The uploads directory is mounted as a volume on both app containers so temporary files are shared.
+
+> For production deployments using managed services (MongoDB Atlas, Redis Cloud), remove the `mongo` and `redis` services from the compose file and point the env vars at your hosted instances instead.
 
 ---
 
@@ -517,4 +615,3 @@ AI tools were used throughout this project. Here is an honest account of where a
 
 **Kaushik**  
 Computer Science Engineering Student
-
