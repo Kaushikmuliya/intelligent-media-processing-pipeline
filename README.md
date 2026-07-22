@@ -6,7 +6,7 @@ An asynchronous, cloud-native image analysis system built for the Backend + AI E
 
 ## Live Links
 
-- **Demo:** https://kaushikmuliya.github.io/intelligent-media-processing-pipeline/
+- **Demo:** https://intelligent-media-processing-api.onrender.com/
 - **API Documentation:** https://intelligent-media-processing-api.onrender.com/api-docs/
 
 - **Test Result of 3 Sample Images:**
