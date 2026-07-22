@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Intelligent Media Processing Pipeline</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --card-2:#243146;
+    --accent:#3b82f6;
+    --success:#22c55e;
+    --warning:#f59e0b;
+    --danger:#ef4444;
+    --text:#f8fafc;
+    --text-muted:#94a3b8;
+    --border:rgba(148,163,184,0.15);
+    --radius:16px;
+    --shadow:0 10px 30px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(1200px 600px at 10% -10%, #16233f 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    line-height:1.5;
+  }
+  a{color:inherit;}
+  .container{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+  /* ---------- NAV ---------- */
+  header.topnav{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(14px) saturate(160%);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    background:rgba(15,23,42,0.7);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 20px;
+  }
+  .logo{
+    width:38px;height:38px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),#22d3ee);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:16px;color:#04101f;
+    box-shadow:0 4px 14px rgba(59,130,246,0.4);
+    flex-shrink:0;
+  }
+  .brand-text{display:flex;flex-direction:column;}
+  .brand-text .name{font-weight:700;font-size:15px;letter-spacing:0.2px;}
+  .brand-text .sub{font-size:11.5px;color:var(--text-muted);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    text-align:center;
+    padding:64px 20px 40px;
+    animation:fadeIn 0.8s ease both;
+  }
+  .hero h1{
+    font-size:clamp(28px,4vw,44px);
+    margin:0 0 14px;
+    background:linear-gradient(135deg,#f8fafc,#93c5fd);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    letter-spacing:-0.5px;
+  }
+  .hero p{
+    max-width:640px;margin:0 auto;color:var(--text-muted);
+    font-size:15.5px;
+  }
+
+  /* ---------- CARD BASE ---------- */
+  .card{
+    background:linear-gradient(180deg, var(--card), var(--card-2));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:24px;
+    animation:fadeIn 0.5s ease both;
+  }
+  .section{margin:28px 0;}
+  .section-title{
+    font-size:13px;text-transform:uppercase;letter-spacing:1.2px;
+    color:var(--text-muted);margin-bottom:14px;font-weight:600;
+  }
+
+  /* ---------- UPLOAD ---------- */
+  .dropzone{
+    border:2px dashed rgba(148,163,184,0.3);
+    border-radius:var(--radius);
+    padding:44px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .25s ease, background .25s ease, transform .15s ease;
+  }
+  .dropzone:hover{border-color:var(--accent); background:rgba(59,130,246,0.05);}
+  .dropzone.dragover{
+    border-color:var(--accent);
+    background:rgba(59,130,246,0.1);
+    transform:scale(1.01);
+  }
+  .dropzone .icon{font-size:40px;margin-bottom:10px;}
+  .dropzone .main-txt{font-size:15px;font-weight:600;}
+  .dropzone .sub-txt{font-size:12.5px;color:var(--text-muted);margin-top:4px;}
+
+  .btn{
+    border:none;border-radius:10px;
+    padding:11px 22px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:transform .15s ease, box-shadow .15s ease, opacity .2s ease;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#2563eb);color:#fff;box-shadow:0 6px 18px rgba(59,130,246,0.35);}
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+  .btn-secondary{background:rgba(148,163,184,0.12);color:var(--text);}
+  .btn-secondary:hover{background:rgba(148,163,184,0.22);}
+  .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
+
+  .file-info{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:14px;margin-top:16px;padding:12px 16px;
+    background:rgba(148,163,184,0.06);border-radius:10px;
+    border:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  .file-info .fname{font-size:13.5px;color:var(--text-muted);word-break:break-all;}
+  .preview-wrap{margin-top:16px;text-align:center;}
+  .preview-wrap img{
+    max-width:100%;max-height:280px;border-radius:12px;
+    border:1px solid var(--border);box-shadow:var(--shadow);
+  }
+  .upload-actions{margin-top:18px;display:flex;justify-content:flex-end;gap:10px;}
+
+  /* ---------- PROCESSING ---------- */
+  .proc-row{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    justify-content:space-between;
+  }
+  .proc-id{
+    display:flex;align-items:center;gap:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:13px;color:var(--text-muted);
+  }
+  .copy-btn{
+    background:rgba(148,163,184,0.12);border:none;color:var(--text);
+    border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;
+    transition:background .2s ease;
+  }
+  .copy-btn:hover{background:rgba(148,163,184,0.25);}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;
+    letter-spacing:0.2px;
+  }
+  .badge-pending{background:rgba(148,163,184,0.15);color:#cbd5e1;}
+  .badge-processing{background:rgba(59,130,246,0.15);color:#93c5fd;}
+  .badge-completed{background:rgba(34,197,94,0.15);color:#86efac;}
+  .badge-failed{background:rgba(239,68,68,0.15);color:#fca5a5;}
+
+  .spinner{
+    width:16px;height:16px;border-radius:50%;
+    border:2.5px solid rgba(148,163,184,0.25);
+    border-top-color:var(--accent);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.55;}}
+  .pulse{animation:pulse 1.4s ease-in-out infinite;}
+
+  /* ---------- RESULTS GRID ---------- */
+  .results-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:18px;margin-top:10px;
+  }
+  .result-card h3{
+    margin:0 0 14px;font-size:15px;display:flex;align-items:center;gap:8px;
+  }
+  .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--text-muted);}
+  .kv .v{font-weight:600;}
+
+  .big-badge{
+    display:flex;align-items:center;justify-content:center;
+    padding:16px;border-radius:12px;font-weight:700;font-size:16px;
+    letter-spacing:0.3px;margin-top:6px;
+  }
+  .big-badge.valid{background:rgba(34,197,94,0.15);color:#86efac;border:1px solid rgba(34,197,94,0.35);}
+  .big-badge.invalid{background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.35);}
+
+  .ocr-box{
+    background:rgba(0,0,0,0.25);border-radius:10px;padding:12px;
+    max-height:160px;overflow-y:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12.5px;white-space:pre-wrap;word-break:break-word;color:#e2e8f0;
+    border:1px solid var(--border);
+  }
+  .ocr-box::-webkit-scrollbar{width:6px;}
+  .ocr-box::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.3);border-radius:4px;}
+  .ocr-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--text-muted);}
+
+  /* ---------- TOAST ---------- */
+  #toast-container{
+    position:fixed;top:20px;right:20px;z-index:999;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .toast{
+    min-width:240px;max-width:340px;
+    background:var(--card);border:1px solid var(--border);
+    border-left:4px solid var(--accent);
+    border-radius:10px;padding:12px 16px;
+    box-shadow:var(--shadow);
+    font-size:13.5px;
+    animation:slideIn 0.3s ease both;
+  }
+  .toast.success{border-left-color:var(--success);}
+  .toast.error{border-left-color:var(--danger);}
+  .toast.info{border-left-color:var(--accent);}
+  .toast.fade-out{animation:fadeOut 0.3s ease forwards;}
+  @keyframes slideIn{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:translateX(0);}}
+  @keyframes fadeOut{to{opacity:0;transform:translateX(30px);}}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top:60px;padding:30px 20px 40px;
+    border-top:1px solid var(--border);
+    text-align:center;color:var(--text-muted);font-size:13px;
+  }
+  .stack-pills{
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;
+  }
+  .stack-pills span{
+    background:rgba(148,163,184,0.08);border:1px solid var(--border);
+    padding:5px 12px;border-radius:999px;font-size:12px;
+  }
+
+  .hidden{display:none !important;}
+
+  @media (max-width:640px){
+    .hero{padding:44px 16px 30px;}
+    .card{padding:18px;}
+    .dropzone{padding:32px 14px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="nav-inner container" style="padding-left:0;padding-right:0;">
+    <div class="logo">IM</div>
+    <div class="brand-text">
+      <span class="name">Intelligent Media Processing Pipeline</span>
+      <span class="sub">Async image analysis service</span>
+    </div>
+  </div>
+</header>
+
+<section class="hero container">
+  <h1>Intelligent Media Processing Pipeline</h1>
+  <p>Asynchronous cloud-native image analysis powered by Express, BullMQ, Redis and Cloudinary.</p>
+</section>
+
+<main class="container">
+
+  <!-- UPLOAD SECTION -->
+  <div class="section">
+    <div class="section-title">Upload</div>
+    <div class="card">
+
+      <!-- fileInput lives OUTSIDE the dropzone to prevent click-event bubbling -->
+      <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+
+      <div class="dropzone" id="dropzone">
+        <div class="icon">&#8593;</div>
+        <div class="main-txt">Drag &amp; drop an image here</div>
+        <div class="sub-txt">or click to browse from your device</div>
+      </div>
+
+      <div class="file-info hidden" id="fileInfo">
+        <span class="fname" id="fileName"></span>
+        <button class="btn btn-secondary btn-sm" id="chooseAnotherBtn">Choose another</button>
+      </div>
+
+      <div class="preview-wrap hidden" id="previewWrap">
+        <img id="previewImg" alt="Preview" />
+      </div>
+
+      <div class="upload-actions">
+        <button class="btn btn-primary" id="uploadBtn" disabled>Upload &amp; Analyze</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROCESSING SECTION -->
+  <div class="section hidden" id="processingSection">
+    <div class="section-title">Processing</div>
+    <div class="card">
+      <div class="proc-row">
+        <div class="proc-id">
+          <span>ID:</span>
+          <span id="processingIdText">-</span>
+          <button class="copy-btn" id="copyIdBtn">Copy</button>
+        </div>
+        <div id="statusBadgeWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div class="section hidden" id="resultsSection">
+    <div class="section-title">Results</div>
+    <div class="results-grid">
+
+      <div class="card result-card" id="metadataCard">
+        <h3>Metadata</h3>
+        <div id="metadataBody"></div>
+      </div>
+
+      <div class="card result-card" id="blurCard">
+        <h3>Blur detection</h3>
+        <div id="blurBody"></div>
+      </div>
+
+      <div class="card result-card" id="brightnessCard">
+        <h3>Brightness</h3>
+        <div id="brightnessBody"></div>
+      </div>
+
+      <div class="card result-card" id="ocrCard">
+        <h3>OCR</h3>
+        <div id="ocrBody"></div>
+      </div>
+
+      <div class="card result-card" id="plateCard">
+        <h3>Plate validation</h3>
+        <div id="plateBody"></div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div>Built with</div>
+  <div class="stack-pills">
+    <span>Node.js</span>
+    <span>Express</span>
+    <span>BullMQ</span>
+    <span>Redis</span>
+    <span>Cloudinary</span>
+    <span>MongoDB</span>
+    <span>Sharp</span>
+    <span>Tesseract.js</span>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+
+<!-- External script satisfies helmet's script-src 'self' CSP -->
+<script src="/demo/app.js"></script>
+
+</body>
+</html>
