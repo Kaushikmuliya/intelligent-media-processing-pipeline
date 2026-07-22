@@ -30,35 +30,46 @@ An asynchronous, cloud-native image analysis system built for the Backend + AI E
 ## Architecture
 
 ```
-Client (HTTP)
-      │
-      ▼
-Express API  ──────────────────────────────────────────────┐
-  POST /api/v1/media/upload                                 │
-      │                                                     │
-      ├── multer (disk storage, 10 MB limit, image only)    │
-      │                                                     │
-      ├── Upload to Cloudinary                              │
-      │                                                     │
-      ├── Save record to MongoDB (status: pending)          │
-      │                                                     │
-      └── Enqueue BullMQ job ──► Redis ──► Worker Process   │
-                                               │             │
-                                    ┌──────────┴──────────┐  │
-                                    │  Download image      │  │
-                                    │  to OS temp dir      │  │
-                                    │                      │  │
-                                    │  Run pipeline        │  │
-                                    │  (5 analyzers in     │  │
-                                    │   parallel + plate)  │  │
-                                    │                      │  │
-                                    │  Save analysis to    │  │
-                                    │  MongoDB             │  │
-                                    │  (status: completed) │  │
-                                    └──────────────────────┘  │
-                                                               │
-GET /api/v1/media/:processingId ───────────────────────────────┘
-  Returns status + analysis results
+Client
+   │
+   ▼
+Express API
+   │
+POST /api/v1/media/upload
+   │
+   ├── Multer (temporary upload)
+   │
+   ├── Upload to Cloudinary
+   │
+   ├── Save MongoDB document
+   │      status = pending
+   │
+   └── Enqueue BullMQ Job
+              │
+              ▼
+      BullMQ Queue (Redis)
+              │
+              ▼
+         Worker Process
+              │
+              ├── Fetch MongoDB record
+              ├── Download image from Cloudinary
+              ├── Save to OS temp directory
+              ├── Promise.all()
+              │     ├── Metadata
+              │     ├── Blur
+              │     ├── Brightness
+              │     └── OCR
+              ├── Plate Validation
+              ├── Update MongoDB
+              └── Delete temp file
+
+Client
+   │
+GET /api/v1/media/:processingId
+   │
+   ▼
+Status + Analysis Results
 ```
 
 The API process and the Worker process are **intentionally separated**. The API never blocks on image analysis — it returns a `processingId` immediately (HTTP 202) and the worker handles the heavy lifting independently.
