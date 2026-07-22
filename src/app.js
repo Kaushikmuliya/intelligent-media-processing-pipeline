@@ -15,7 +15,28 @@ const path = require("path");
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc:  ["'self'"],
+        scriptSrc:   ["'self'"],
+        styleSrc:    ["'self'", "https:", "'unsafe-inline'"],
+        imgSrc:      ["'self'", "data:", "https:"],
+        fontSrc:     ["'self'", "https:", "data:"],
+        connectSrc:  [
+          "'self'",
+          "https://intelligent-media-processing-api.onrender.com",
+        ],
+        objectSrc:   ["'none'"],
+        baseUri:     ["'self'"],
+        formAction:  ["'self'"],
+        frameAncestors: ["'self'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+  })
+);
 app.use(cors());
 app.use(compression());
 
