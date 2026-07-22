@@ -4,7 +4,7 @@
   // =====================================================
   // CONFIG
   // =====================================================
-  const API_BASE = "http://localhost:5000";
+  const API_BASE = "https://intelligent-media-processing-api.onrender.com/";
   const POLL_INTERVAL_MS = 2000;
 
   // =====================================================
@@ -215,7 +215,10 @@
         showToast("Processing completed", "success");
       } else if (data.status === "failed") {
         stopPolling();
-        showToast("Processing failed: " + (data.failure || "unknown error"), "error");
+        showToast(
+          "Processing failed: " + (data.failure || "unknown error"),
+          "error",
+        );
       }
     } catch (err) {
       stopPolling();
@@ -382,7 +385,8 @@
     const validClass = plateValidation.isValid ? "valid" : "invalid";
     const validLabel = plateValidation.isValid ? "Valid" : "Invalid";
 
-    html += '<div class="big-badge ' + validClass + '">' + validLabel + "</div>";
+    html +=
+      '<div class="big-badge ' + validClass + '">' + validLabel + "</div>";
     plateBody.innerHTML = html;
   }
 
