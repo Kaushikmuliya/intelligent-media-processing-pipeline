@@ -12,7 +12,9 @@ const runPipeline = async (imagePath) => {
     analyzeOCR(imagePath),
   ]);
 
-  const plateValidation = await analyzePlate(ocr.text);
+  // Pass the full raw OCR text — plateAnalyzer tokenises it internally
+  // and also benefits from rawText which preserves spacing for candidate generation
+  const plateValidation = analyzePlate(ocr.rawText || ocr.text);
 
   return {
     metadata,
