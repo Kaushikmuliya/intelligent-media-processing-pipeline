@@ -134,7 +134,7 @@
       const formData = new FormData();
       formData.append("image", selectedFile);
 
-      const response = await fetch(API_BASE + "/api/v1/media/upload", {
+      const response = await fetch(API_BASE + "api/v1/media/upload", {
         method: "POST",
         body: formData,
       });
