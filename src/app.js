@@ -11,6 +11,8 @@ const mediaRoutes = require("./modules/media/routes/media.routes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
+const path = require("path");
+
 const app = express();
 
 app.use(helmet());
@@ -38,6 +40,12 @@ app.use(
 );
 
 app.use("/api/v1/media", mediaRoutes);
+
+// Serve demo UI
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../index.html"));
+});
+app.use("/demo", express.static(path.join(__dirname, "../demo")));
 
 app.use(errorHandler);
 
