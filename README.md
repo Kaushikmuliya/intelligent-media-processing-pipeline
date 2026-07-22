@@ -1,6 +1,6 @@
 # Intelligent Media Processing Pipeline
 
-An asynchronous, cloud-native image analysis system built for the Backend + AI Engineering take-home assignment. It accepts image uploads via a REST API, queues them for background processing, runs five analysis modules in parallel, and exposes results through a structured API — all backed by MongoDB, Redis, and Cloudinary.
+An asynchronous, cloud-native image analysis system. It accepts image uploads via a REST API, queues them for background processing, runs five analysis modules in parallel, and exposes results through a structured API — all backed by MongoDB, Redis, and Cloudinary.
 
 ---
 
@@ -432,7 +432,8 @@ NODE_ENV=development
 
 A lightweight browser-based demo is available at:
 
-**Live Demo:** https://kaushikmuliya.github.io/intelligent-media-processing-pipeline/
+**Live Demo:** 
+https://intelligent-media-processing-api.onrender.com/
 
 The demo communicates directly with the deployed backend API and allows users to:
 
@@ -446,7 +447,7 @@ The demo communicates directly with the deployed backend API and allows users to
 
 ## AI Usage Disclosure
 
-AI tools (Claude via Kiro IDE) were used throughout this project. Here is an honest account of where and how:
+AI tools were used throughout this project. Here is an honest account of where and how:
 
 ### Where AI helped
 
@@ -514,11 +515,6 @@ AI tools (Claude via Kiro IDE) were used throughout this project. Here is an hon
 
 ## Author
 
-**Kaushik Muliya**  
+**Kaushik**  
 Computer Science Engineering Student
 
----
-
-## License
-
-MIT
