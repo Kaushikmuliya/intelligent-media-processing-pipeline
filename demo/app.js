@@ -134,7 +134,7 @@
       const formData = new FormData();
       formData.append("image", selectedFile);
 
-      const response = await fetch(API_BASE + "api/v1/media/upload", {
+      const response = await fetch(API_BASE + "/api/v1/media/upload", {
         method: "POST",
         body: formData,
       });
@@ -194,7 +194,7 @@
 
   async function pollStatus(processingId) {
     try {
-      const response = await fetch(API_BASE + "api/v1/media/" + processingId);
+      const response = await fetch(API_BASE + "/api/v1/media/" + processingId);
 
       if (!response.ok) {
         throw new Error("Status check failed with status " + response.status);
